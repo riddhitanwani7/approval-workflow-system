@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Approval Workflow System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .navbar {
+      background-color: #3f51b5;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+      height: 64px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+    
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-item {
+      margin-left: 1rem;
+      cursor: pointer;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+    }
+    
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 1rem;
+    }
+    
+    .tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      color: #3f51b5;
+      border-bottom-color: #3f51b5;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    th {
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+    
+    .btn-approve {
+      background-color: #4caf50;
+      color: white;
+    }
+    
+    .btn-reject {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .btn-escalate {
+      background-color: #ff9800;
+      color: white;
+    }
+    
+    .btn-new {
+      background-color: #3f51b5;
+      color: white;
+      margin-bottom: 1rem;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      width: 500px;
+      max-width: 90%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 2rem;
+    }
+    
+    .modal-title {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .approved-status {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    
+    .rejected-status {
+      color: #f44336;
+      font-weight: bold;
+    }
+    
+    .escalated-status {
+      color: #ff9800;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <nav class="navbar">
+      <div class="navbar-brand">Approval Workflow System</div>
+      <div class="navbar-nav">
+        <div class="nav-item" id="username"></div>
+        <div class="nav-item" id="logout">Logout</div>
+      </div>
+    </nav>
+    
+    <div class="main-content">
+      <div class="card">
+        <h2 class="card-title">Dashboard</h2>
+        <button class="btn btn-new" id="new-request-btn">New Request</button>
+        
+        <div class="tabs" id="employee-tabs">
+          <!-- Tabs will be dynamically added here -->
+        </div>
+        
+        <div id="tab-content-container">
+          <!-- Tab content will be dynamically added here -->
+        </div>
+      </div>
+      
+      <!-- Employee Management Section (visible only to admins) -->
+      <div class="card" id="employee-management-section">
+        <h2 class="card-title">Employee Management</h2>
+        <button class="btn btn-new" id="new-employee-btn">New Employee</button>
+        
+        <table id="employees-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Position</th>
+              <th>Manager</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Employee rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- New Request Modal -->
+  <div class="modal" id="new-request-modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Submit New Request</h3>
+      <form id="new-request-form">
+        <div class="form-group">
+          <label for="requester">Requester</label>
+          <select id="requester" class="form-control">
+            <!-- Options will be dynamically added here -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" class="form-control" rows="4" placeholder="Enter request description"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" id="cancel-request-btn">Cancel</button>
+          <button type="submit" class="btn btn-approve">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- New Employee Modal -->
+  <div class="modal" id="new-employee-modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Add New Employee</h3>
+      <form id="new-employee-form">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" class="form-control" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" class="form-control" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+          <label for="position">Position</label>
+          <select id="position" class="form-control">
+            <option value="EMPLOYEE">Employee</option>
+            <option value="MANAGER">Manager</option>
+            <option value="SUPERVISOR">Supervisor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="manager">Manager</label>
+          <select id="manager" class="form-control">
+            <option value="">None</option>
+            <!-- Options will be dynamically added here -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Enter password">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" id="cancel-employee-btn">Cancel</button>
+          <button type="submit" class="btn btn-approve">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (!token || !userStr) {
+        window.location.href = '/';
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      document.getElementById('username').textContent = user.name;
+      
+      // Handle logout
+      document.getElementById('logout').addEventListener('click', function() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      });
+      
+      // Show/hide employee management section based on role
+      if (user.position === 'SUPERVISOR' || user.position === 'MANAGER') {
+        document.getElementById('employee-management-section').classList.remove('hidden');
+      } else {
+        document.getElementById('employee-management-section').classList.add('hidden');
+      }
+      
+      // Fetch employees who can approve requests
+      fetchApprovers();
+      
+      // Fetch all employees for employee management
+      if (user.position === 'SUPERVISOR' || user.position === 'MANAGER') {
+        fetchEmployees();
+      }
+      
+      // New request button event
+      document.getElementById('new-request-btn').addEventListener('click', function() {
+        document.getElementById('new-request-modal').style.display = 'block';
+        // Populate requester dropdown
+        fetchEmployeesForDropdown();
+      });
+      
+      // Cancel new request button event
+      document.getElementById('cancel-request-btn').addEventListener('click', function() {
+        document.getElementById('new-request-modal').style.display = 'none';
+      });
+      
+      // New employee button event
+      document.getElementById('new-employee-btn').addEventListener('click', function() {
+        document.getElementById('new-employee-modal').style.display = 'block';
+        // Populate manager dropdown
+        fetchEmployeesForManagerDropdown();
+      });
+      
+      // Cancel new employee button event
+      document.getElementById('cancel-employee-btn').addEventListener('click', function() {
+        document.getElementById('new-employee-modal').style.display = 'none';
+      });
+      
+      // Submit new request form
+      document.getElementById('new-request-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitNewRequest();
+      });
+      
+      // Submit new employee form
+      document.getElementById('new-employee-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitNewEmployee();
+      });
+    });
+    
+    // Fetch employees who can approve requests
+    async function fetchApprovers() {
+      try {
+        const response = await fetch('/api/employees', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          const employees = await response.json();
+          const user = JSON.parse(localStorage.getItem('user'));
+          
+          // Clear existing tabs
+          const tabsContainer = document.getElementById('employee-tabs');
+          tabsContainer.innerHTML = '';
+          
+          // Clear existing tab content
+          const tabContentContainer = document.getElementById('tab-content-container');
+          tabContentContainer.innerHTML = '';
+          
+          // Filter approvers based on current user's role
+          let approvers = [];
+          
+          if (user.position === 'SUPERVISOR') {
+            // Supervisors can see all managers and themselves
+            approvers = employees.filter(employee => 
+              employee.position === 'MANAGER' || employee.position === 'SUPERVISOR');
+          } else if (user.position === 'MANAGER') {
+            // Managers can only see themselves and their subordinates
+            approvers = employees.filter(employee => 
+              (employee.position === 'MANAGER' && (employee.id === user.id || employee.manager?.id === user.id)));
+          } else {
+            // Employees should not see any tabs
+            return;
+          }
+          
+          approvers.forEach((approver, index) => {
+            // Create tab
+            const tab = document.createElement('div');
+            tab.className = 'tab' + (index === 0 ? ' active' : '');
+            tab.setAttribute('data-tab', 'tab-' + approver.id);
+            tab.textContent = approver.name;
+            tab.addEventListener('click', function() {
+              activateTab(this);
+            });
+            tabsContainer.appendChild(tab);
+            
+            // Create tab content
+            const tabContent = document.createElement('div');
+            tabContent.className = 'tab-content' + (index === 0 ? ' active' : '');
+            tabContent.id = 'tab-' + approver.id;
+            tabContentContainer.appendChild(tabContent);
+            
+            // Fetch pending requests for this approver
+            fetchPendingRequests(approver.id, tabContent);
+          });
+          
+          // Add request history tab
+          addRequestHistoryTab(tabsContainer, tabContentContainer, user.id);
+        } else {
+          console.error('Failed to fetch approvers');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    
+    // Add request history tab
+    function addRequestHistoryTab(tabsContainer, tabContentContainer, userId) {
+      // Create history tab
+      const historyTab = document.createElement('div');
+      historyTab.className = 'tab';
+      historyTab.setAttribute('data-tab', 'tab-history');
+      historyTab.textContent = 'Request History';
+      historyTab.addEventListener('click', function() {
+        activateTab(this);
+        fetchRequestHistory(userId, document.getElementById('tab-history'));
+      });
+      tabsContainer.appendChild(historyTab);
+      
+      // Create history tab content
+      const historyContent = document.createElement('div');
+      historyContent.className = 'tab-content';
+      historyContent.id = 'tab-history';
+      tabContentContainer.appendChild(historyContent);
+    }
+    
+    // Fetch request history
+    async function fetchRequestHistory(userId, containerElement) {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        // Get all requests where this user is either requester or approver
+        const response = await fetch(`/api/approvals/employee/${userId}`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          const requests = await response.json();
+          
+          // Filter non-pending requests
+          const processedRequests = requests.filter(request => 
+            request.status === 'APPROVED' || request.status === 'REJECTED' || request.status === 'ESCALATED');
+          
+          // Create table
+          let tableHtml = `
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Requester</th>
+                  <th>Approver</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                  <th>Last Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          
+          if (processedRequests.length === 0) {
+            tableHtml += `
+              <tr>
+                <td colspan="6" style="text-align: center;">No processed requests found</td>
+              </tr>
+            `;
+          } else {
+            processedRequests.forEach(request => {
+              // Format status for display
+              let statusClass = '';
+              switch(request.status) {
+                case 'APPROVED': statusClass = 'approved-status'; break;
+                case 'REJECTED': statusClass = 'rejected-status'; break;
+                case 'ESCALATED': statusClass = 'escalated-status'; break;
+              }
+              
+              tableHtml += `
+                <tr>
+                  <td>${request.id}</td>
+                  <td>${request.requesterName}</td>
+                  <td>${request.approverName || 'Escalated'}</td>
+                  <td><span class="${statusClass}">${request.status}</span></td>
+                  <td>${request.description}</td>
+                  <td>${request.updatedAt || request.createdAt}</td>
+                </tr>
+              `;
+            });
+          }
+          
+          tableHtml += `
+              </tbody>
+            </table>
+          `;
+          
+          containerElement.innerHTML = tableHtml;
+        } else {
+          console.error('Failed to fetch request history');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    
+    // Fetch pending requests for a specific approver
+    async function fetchPendingRequests(approverId, tabContentElement) {
+      try {
+        const response = await fetch(`/api/approvals/approver/${approverId}`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          const requests = await response.json();
+          
+          // Filter pending requests
+          const pendingRequests = requests.filter(request => request.status === 'PENDING');
+          
+          // Create table
+          let tableHtml = `
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Requester</th>
+                  <th>Description</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          
+          if (pendingRequests.length === 0) {
+            tableHtml += `
+              <tr>
+                <td colspan="5" style="text-align: center;">No pending requests</td>
+              </tr>
+            `;
+          } else {
+            pendingRequests.forEach(request => {
+              tableHtml += `
+                <tr>
+                  <td>${request.id}</td>
+                  <td>${request.requesterName}</td>
+                  <td>${request.description}</td>
+                  <td>${request.createdAt}</td>
+                  <td>
+                    <button class="btn btn-approve" onclick="approveRequest(${request.id})">Approve</button>
+                    <button class="btn btn-reject" onclick="rejectRequest(${request.id})">Reject</button>
+                    <button class="btn btn-escalate" onclick="escalateRequest(${request.id})">Escalate</button>
+                  </td>
+                </tr>
+              `;
+            });
+          }
+          
+          tableHtml += `
+              </tbody>
+            </table>
+          `;
+          
+          tabContentElement.innerHTML = tableHtml;
+        } else {
+          console.error('Failed to fetch pending requests');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    
+    // Fetch all employees for employee management
+    async function fetchEmployees() {
+      try {
+        const response = await fetch('/api/employees', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          const employees = await response.json();
+          const tableBody = document.querySelector('#employees-table tbody');
+          tableBody.innerHTML = '';
+          
+          const user = JSON.parse(localStorage.getItem('user'));
+          
+          employees.forEach(employee => {
+            const tr = document.createElement('tr');
+            
+            // Manager shouldn't be able to modify supervisors
+            const canModify = user.position === 'SUPERVISOR' || 
+                            (user.position === 'MANAGER' && employee.position !== 'SUPERVISOR');
+            
+            tr.innerHTML = `
+              <td>${employee.name}</td>
+              <td>${employee.email}</td>
+              <td>${employee.position}</td>
+              <td>${employee.manager ? employee.manager.name : '-'}</td>
+              <td>${employee.availabilityStatus}</td>
+              <td>
+                ${canModify ? 
+                  `<button class="btn" onclick="toggleEmployeeAvailability(${employee.id})">Toggle Availability</button>
+                   <button class="btn btn-reject" onclick="deleteEmployee(${employee.id})">Delete</button>` : 
+                  '<span>No actions available</span>'}
+              </td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        } else {
+          console.error('Failed to fetch employees');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    
+    // Fetch employees for requester dropdown
+    async function fetchEmployeesForDropdown() {
+      try {
+        console.log('Fetching employees for dropdown...');
+        const token = localStorage.getItem('token');
+        console.log('Token available:', !!token);
+        
+        const response = await fetch('/api/employees/requesters', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+          const employees = await response.json();
+          console.log('Employees received:', employees);
+          
+          const select = document.getElementById('requester');
+          select.innerHTML = '';
+          
+          const user = JSON.parse(localStorage.getItem('user'));
+          console.log('Current user:', user);
+          
+          if (employees.length === 0) {
+            console.log('No employees returned from API');
+            // Add a fallback option if no employees are returned
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.name;
+            option.selected = true;
+            select.appendChild(option);
+          } else {
+            employees.forEach(employee => {
+              const option = document.createElement('option');
+              option.value = employee.id;
+              option.textContent = employee.name;
+              
+              // Set current user as default selected
+              if (employee.id === user.id) {
+                option.selected = true;
+              }
+              
+              select.appendChild(option);
+            });
+          }
+        } else {
+          console.error('Failed to fetch employees for dropdown', response);
+          // Add fallback option on error
+          const select = document.getElementById('requester');
+          select.innerHTML = '';
+          const user = JSON.parse(localStorage.getItem('user'));
+          
+          const option = document.createElement('option');
+          option.value = user.id;
+          option.textContent = user.name;
+          option.selected = true;
+          select.appendChild(option);
+        }
+      } catch (error) {
+        console.error('Error in fetchEmployeesForDropdown:', error);
+        // Add fallback option on error
+        const select = document.getElementById('requester');
+        select.innerHTML = '';
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.name;
+        option.selected = true;
+        select.appendChild(option);
+      }
+    }
+    
+    // Fetch employees for manager dropdown
+    async function fetchEmployeesForManagerDropdown() {
+      try {
+        const response = await fetch('/api/employees', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          const employees = await response.json();
+          const select = document.getElementById('manager');
+          
+          // Keep the "None" option
+          select.innerHTML = '<option value="">None</option>';
+          
+          // Filter for potential managers (supervisors and managers)
+          const potentialManagers = employees.filter(employee => 
+            employee.position === 'MANAGER' || employee.position === 'SUPERVISOR');
+          
+          potentialManagers.forEach(employee => {
+            const option = document.createElement('option');
+            option.value = employee.id;
+            option.textContent = employee.name;
+            select.appendChild(option);
+          });
+        } else {
+          console.error('Failed to fetch employees for manager dropdown');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    
+    // Activate tab
+    function activateTab(tabElement) {
+      // Deactivate all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Deactivate all tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Activate selected tab
+      tabElement.classList.add('active');
+      
+      // Activate corresponding tab content
+      const tabId = tabElement.getAttribute('data-tab');
+      document.getElementById(tabId).classList.add('active');
+    }
+    
+    // Submit new request
+    async function submitNewRequest() {
+      const requesterId = document.getElementById('requester').value;
+      const description = document.getElementById('description').value;
+      
+      if (!requesterId || !description) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/approvals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({
+            requesterId,
+            description
+          })
+        });
+        
+        if (response.ok) {
+          alert('Request submitted successfully');
+          document.getElementById('new-request-modal').style.display = 'none';
+          document.getElementById('description').value = '';
+          
+          // Refresh dashboard
+          fetchApprovers();
+        } else {
+          alert('Failed to submit request. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Submit new employee
+    async function submitNewEmployee() {
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const position = document.getElementById('position').value;
+      const managerId = document.getElementById('manager').value;
+      const password = document.getElementById('password').value;
+      
+      if (!name || !email || !position || !password) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/employees', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            managerId: managerId || null,
+            position,
+            password
+          })
+        });
+        
+        if (response.ok) {
+          alert('Employee created successfully');
+          document.getElementById('new-employee-modal').style.display = 'none';
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('position').value = 'EMPLOYEE';
+          document.getElementById('manager').value = '';
+          document.getElementById('password').value = '';
+          
+          // Refresh employee list
+          fetchEmployees();
+        } else {
+          alert('Failed to create employee. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Approve request
+    async function approveRequest(id) {
+      try {
+        const response = await fetch(`/api/approvals/${id}/approve`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          alert('Request approved successfully');
+          
+          // Refresh dashboard
+          fetchApprovers();
+        } else {
+          alert('Failed to approve request. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Reject request
+    async function rejectRequest(id) {
+      try {
+        const response = await fetch(`/api/approvals/${id}/reject`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          alert('Request rejected successfully');
+          
+          // Refresh dashboard
+          fetchApprovers();
+        } else {
+          alert('Failed to reject request. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Escalate request
+    async function escalateRequest(id) {
+      try {
+        const response = await fetch(`/api/approvals/${id}/escalate`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          alert('Request escalated successfully');
+          
+          // Refresh dashboard
+          fetchApprovers();
+        } else {
+          alert('Failed to escalate request. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Toggle employee availability
+    async function toggleEmployeeAvailability(id) {
+      try {
+        const response = await fetch(`/api/employees/${id}/toggle-availability`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          alert('Employee availability toggled successfully');
+          
+          // Refresh employee list
+          fetchEmployees();
+        } else {
+          alert('Failed to toggle employee availability. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+    
+    // Delete employee
+    async function deleteEmployee(id) {
+      if (!confirm('Are you sure you want to delete this employee? All their subordinates will be reassigned to their manager.')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/employees/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+        
+        if (response.ok) {
+          alert('Employee deleted successfully');
+          
+          // Refresh employee list
+          fetchEmployees();
+        } else {
+          alert('Failed to delete employee. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    }
+  </script>
+</body>
+</html> 
